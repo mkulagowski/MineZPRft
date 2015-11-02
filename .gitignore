@@ -1,0 +1,9 @@
+# Visual Studio specific files
+*.opensdf
+*.sdf
+*.vcxproj.user
+/.vs
+
+# Compilation results
+/Bin
+/Obj

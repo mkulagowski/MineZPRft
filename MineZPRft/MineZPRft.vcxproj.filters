@@ -1,0 +1,17 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Renderer">
+      <UniqueIdentifier>{554cf61f-25ed-45bc-9e33-53ac47223734}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Game">
+      <UniqueIdentifier>{b373a12f-9fd9-4b66-9208-cb8d3e519632}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Math">
+      <UniqueIdentifier>{34c994b8-6c16-498c-bd9e-30c8a26548b9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Terrain">
+      <UniqueIdentifier>{c34226c0-c72f-4f41-8eb1-f12602736ca9}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>
