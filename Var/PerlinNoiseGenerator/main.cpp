@@ -34,7 +34,7 @@ int main(int argc, char *argv[])
             double y_norm = static_cast<double>(y)
                 / static_cast<double>(height);
 
-            double noiseVal = noiseGen.Noise(10 * x_norm, 10 * y_norm, 0.8);
+            double noiseVal = noiseGen.Noise(10 * x_norm, 10 * y_norm, 0.1);
             noiseVal = floor(noiseVal * 255);
             imageArray[index++] = static_cast<uint8_t>(noiseVal);
             imageArray[index++] = static_cast<uint8_t>(noiseVal);
