@@ -6,7 +6,7 @@
 
 #include "Mesh.hpp"
 
-#include "../Common/Common.hpp"
+#include "Common/Common.hpp"
 
 Mesh::Mesh()
 {

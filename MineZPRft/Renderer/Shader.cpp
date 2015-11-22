@@ -6,7 +6,7 @@
 
 #include "Shader.hpp"
 
-#include "../Common/Common.hpp"
+#include "Common/Common.hpp"
 
 Shader::Shader()
 {

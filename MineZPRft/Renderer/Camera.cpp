@@ -6,7 +6,7 @@
 
 #include "Camera.hpp"
 
-#include "../Common/Common.hpp"
+#include "Common/Common.hpp"
 
 Camera::Camera()
 {

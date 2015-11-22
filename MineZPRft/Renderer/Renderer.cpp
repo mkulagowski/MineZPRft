@@ -6,7 +6,7 @@
 
 #include "Renderer.hpp"
 
-#include "../Common/Common.hpp"
+#include "Common/Common.hpp"
 
 Renderer::Renderer()
 {
