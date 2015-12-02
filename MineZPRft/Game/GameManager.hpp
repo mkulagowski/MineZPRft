@@ -4,7 +4,8 @@
  * @brief  GameManager class declaration.
  */
 
-#pragma once
+#ifndef __GAME_GAMEMANAGER_HPP__
+#define __GAME_GAMEMANAGER_HPP__
 
 #include "GameWindow.hpp"
 #include "Renderer/Renderer.hpp"
@@ -35,3 +36,5 @@ private:
     GameWindow mWindow;
     Renderer mRenderer;
 };
+
+#endif // __GAME_GAMEMANAGER_HPP__

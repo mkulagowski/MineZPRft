@@ -4,7 +4,8 @@
  * @brief  Filesystem utility declarations
  */
 
-#pragma once
+#ifndef __COMMON_FILESYSTEM_HPP__
+#define __COMMON_FILESYSTEM_HPP__
 
 #include <string>
 
@@ -25,3 +26,5 @@ std::string GetExecutableDir();
 void ChangeDirectory(const std::string& dir);
 
 } // namespace FS
+
+#endif // __COMMON_FILESYSTEM_HPP__

@@ -4,10 +4,13 @@
  * @brief  Common declarations for Renderer
  */
 
-#pragma once
+#ifndef __RENDERER_COMMON_HPP__
+#define __RENDERER_COMMON_HPP__
 
 #ifdef WIN32
 #include <Windows.h>
-#endif
+#endif // WIN32
 
 #include <GL/gl.h>
+
+#endif // __RENDERER_COMMON_HPP__

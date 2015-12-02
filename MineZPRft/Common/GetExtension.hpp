@@ -4,7 +4,8 @@
  * @brief  Definition of OGL_GET_EXTENSION macro
  */
 
-#pragma once
+#ifndef __COMMON_GETEXTENSION_HPP__
+#define __COMMON_GETEXTENSION_HPP__
 
 #include <iostream>
 
@@ -15,7 +16,7 @@
 #define GET_PROC_ADDRESS(x) glXGetProcAddress((const GLubyte*) #x )
 #else
 #error "Target platform not supported."
-#endif
+#endif // WIN32
 
 #ifndef OGL_GET_EXTENSION
 /**
@@ -33,4 +34,6 @@ do {                                                                            
         allExtensionsAvailable = false;                                                     \
     }                                                                                       \
 } while(0)
-#endif
+#endif // OGL_GET_EXTENSION
+
+#endif // __COMMON_GETEXTENSION_HPP__

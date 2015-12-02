@@ -4,7 +4,8 @@
  * @brief  OpenGL Renderer declarations
  */
 
-#pragma once
+#ifndef __RENDERER_RENDERER_HPP__
+#define __RENDERER_RENDERER_HPP__
 
 #include <string>
 #include <vector>
@@ -80,3 +81,5 @@ private:
     GLuint mDummyVAO; // We don't need this, but OGL has its needs and won't cooperate without it
     MeshArrayType mMeshArray;
 };
+
+#endif // __RENDERER_RENDERER_HPP__

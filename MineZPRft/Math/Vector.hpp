@@ -4,7 +4,8 @@
  * @brief  Vector class declaration.
  */
 
-#pragma once
+#ifndef __MATH_VECTOR_HPP__
+#define __MATH_VECTOR_HPP__
 
 /**
  * Class used for vector operations.
@@ -82,3 +83,5 @@ struct Vector4
 {
     Vector v[4];
 };
+
+#endif // __MATH_VECTOR_HPP__

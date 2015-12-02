@@ -4,7 +4,8 @@
  * @brief  GameWindow class declaration.
  */
 
-#pragma once
+#ifndef __GAME_GAMEWINDOW_HPP__
+#define __GAME_GAMEWINDOW_HPP__
 
 #include "../Common/Window.hpp"
 #include <utility>
@@ -26,3 +27,5 @@ private:
     void OnMouseMove(int x, int y, int deltaX, int deltaY);
     void OnMouseUp(uint32_t button);
 };
+
+#endif // __GAME_GAMEWINDOW_HPP__

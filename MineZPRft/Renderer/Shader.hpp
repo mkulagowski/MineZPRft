@@ -4,7 +4,8 @@
  * @brief  Renderer's Shader declarations
  */
 
-#pragma once
+#ifndef __RENDERER_SHADER_HPP__
+#define __RENDERER_SHADER_HPP__
 
 #include "Common.hpp"
 #include <string>
@@ -52,3 +53,5 @@ private:
 
     GLuint mShaderProgram; ///< OpenGL Shader Program ID
 };
+
+#endif // __RENDERER_SHADER_HPP__

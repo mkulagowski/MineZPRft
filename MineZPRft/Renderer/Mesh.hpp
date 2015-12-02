@@ -4,7 +4,8 @@
  * @brief  Renderer Mesh declarations
  */
 
-#pragma once
+#ifndef __RENDERER_MESH_HPP__
+#define __RENDERER_MESH_HPP__
 
 #include <cstdlib>
 
@@ -59,3 +60,5 @@ public:
 private:
     // TODO OpenGL VBO ID should be here, along with other required parameters
 };
+
+#endif // __RENDERER_MESH_HPP__

@@ -5,13 +5,14 @@
  * @brief  Commonly used declarations.
  */
 
-#pragma once
+#ifndef __COMMON_COMMON_HPP__
+#define __COMMON_COMMON_HPP__
 
 #include <string>
 
 #ifdef WIN32
 #include <Windows.h>
-#endif
+#endif //WIN32
 
 
 // Macro for unused parameters to supress warnings in skeletons
@@ -24,3 +25,5 @@
  * @return Last error in string.
  */
 std::string GetLastErrorString();
+
+#endif // __COMMON_COMMON_HPP__

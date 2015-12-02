@@ -4,7 +4,8 @@
  * @brief  OpenGL Extensions declarations
  */
 
-#pragma once
+#ifndef __RENDERER_EXTENSIONS_HPP__
+#define __RENDERER_EXTENSIONS_HPP__
 
 #include "Common.hpp"
 #include "GL/glext.h"
@@ -51,3 +52,5 @@ extern PFNGLUSEPROGRAMPROC glUseProgram;
 bool ExtensionsInit();
 
 } // namespace OGLExt
+
+#endif // __RENDERER_EXTENSIONS_HPP__

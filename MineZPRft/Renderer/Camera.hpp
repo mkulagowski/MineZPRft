@@ -4,7 +4,8 @@
  * @brief  Renderer's Camera declarations
  */
 
-#pragma once
+#ifndef __RENDERER_CAMERA_HPP__
+#define __RENDERER_CAMERA_HPP__
 
 /**
  * Structure describing Camera initial properties
@@ -53,3 +54,5 @@ public:
 private:
     // TODO Matrices, vectors, constant buffers, whatevers are needed!
 };
+
+#endif // __RENDERER_CAMERA_HPP__

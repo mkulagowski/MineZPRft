@@ -4,7 +4,8 @@
  * @brief  UTF-related functions implementation.
  */
 
-#pragma once
+#ifndef __COMMON_UTFFUNCS_HPP__
+#define __COMMON_UTFFUNCS_HPP__
 
 #include <vector>
 
@@ -23,3 +24,5 @@ std::string UTF16ToUTF8(const std::wstring &s);
  * @return String in UTF16
  */
 std::wstring UTF8ToUTF16(const std::string &s);
+
+#endif // __COMMON_UTFFUNCS_HPP__

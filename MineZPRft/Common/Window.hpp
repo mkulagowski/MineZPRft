@@ -5,7 +5,8 @@
  * @brief  WindowManager class declaration.
  */
 
-#pragma once
+#ifndef __COMMON_WINDOW_HPP__
+#define __COMMON_WINDOW_HPP__
 
 #include <cstdint>
 #include <cstring>
@@ -189,3 +190,5 @@ public:
     virtual void OnMouseMove(int x, int y, int deltaX, int deltaY);
     virtual void OnMouseUp(uint32_t button);
 };
+
+#endif // __COMMON_WINDOW_HPP__

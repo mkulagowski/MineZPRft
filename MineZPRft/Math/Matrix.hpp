@@ -4,7 +4,8 @@
  * @brief  Matrix class declaration.
  */
 
-#pragma once
+#ifndef __MATH_MATRIX_HPP__
+#define __MATH_MATRIX_HPP__
 
 #include "Vector.hpp"
 
@@ -77,3 +78,5 @@ private:
 
 // External operators (cross-type)
 Vector operator*(const Matrix& a, const Vector& b);
+
+#endif // __MATH_MATRIX_HPP__
