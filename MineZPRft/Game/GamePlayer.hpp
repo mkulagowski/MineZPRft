@@ -33,27 +33,36 @@ public:
     /**
      * Set new Position vector
      */
-    void SetPosition(const Vector& pos);
+    void SetPosition(const Vector& pos) noexcept;
 
     /**
-     * Set new Direction vector
+     * Rotate Player's camera by @p deltaX radians (yaw rotation).
+     *
+     * @param deltaX Angle in radians to rotate the camera.
      */
-    void SetDirection(const Vector& dir);
+    void ShiftRotationX(const float deltaX) noexcept;
+
+    /**
+     * Rotate Player's camera by @p deltaY radians (pitch rotation).
+     *
+     * @param deltaY Angle in radians to rotate the camera.
+     */
+    void ShiftRotationY(const float deltaY) noexcept;
 
     /**
      * Acquire Player position vector.
      */
-    const Vector& GetPosition();
+    const Vector& GetPosition() const noexcept;
 
     /**
      * Acquire Player direction vector.
      */
-    const Vector& GetDirection();
+    const Vector& GetDirection() const noexcept;
 
     /**
      * Acquire Player up vector.
      */
-    const Vector& GetUp();
+    const Vector& GetUp() const noexcept;
 
 
 private:
@@ -61,6 +70,8 @@ private:
     Vector mPos;
     Vector mDir;
     Vector mUp;
+    float mAngleX;
+    float mAngleY;
 };
 
 #endif // __GAME_GAMEPLAYER_H__
