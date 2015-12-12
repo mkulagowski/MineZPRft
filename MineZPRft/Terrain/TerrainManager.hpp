@@ -53,7 +53,9 @@ public:
 private:
     TerrainManager();
     TerrainManager(const TerrainManager&) = delete;
+    TerrainManager(TerrainManager&&) = delete;
     TerrainManager& operator=(const TerrainManager&) = delete;
+    TerrainManager& operator=(TerrainManager&&) = delete;
     ~TerrainManager();
 
     NoiseGenerator& mNoiseGen;

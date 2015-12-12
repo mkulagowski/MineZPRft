@@ -33,7 +33,9 @@ public:
 private:
     GameManager();
     GameManager(const GameManager&) = delete;
+    GameManager(GameManager&&) = delete;
     GameManager& operator=(const GameManager&) = delete;
+    GameManager& operator=(GameManager&&) = delete;
     ~GameManager();
 
     Timer mFrameTimer;

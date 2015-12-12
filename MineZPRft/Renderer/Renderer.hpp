@@ -84,7 +84,9 @@ public:
 private:
     Renderer();
     Renderer(const Renderer&) = delete;
+    Renderer(Renderer&&) = delete;
     Renderer& operator=(const Renderer&) = delete;
+    Renderer& operator=(Renderer&&) = delete;
     ~Renderer();
 
     typedef std::vector<const Mesh*> MeshArrayType;
