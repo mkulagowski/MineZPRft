@@ -7,11 +7,7 @@
 #ifndef __TERRAIN_TERRAINMANAGER_HPP__
 #define __TERRAIN_TERRAINMANAGER_HPP__
 
-#include "NoiseGenerator.hpp"
 #include "Chunk.hpp"
-
-#include "Renderer/Renderer.hpp"
-#include "Renderer/Mesh.hpp"
 
 
 struct TerrainDesc
@@ -60,10 +56,11 @@ private:
     TerrainManager& operator=(TerrainManager&&) = delete;
     ~TerrainManager();
 
-    NoiseGenerator& mNoiseGen;
-    Renderer& mRenderer;
-    Mesh mTerrain;
     Chunk mChunk;
+    Chunk mChunk2;
+    Chunk mChunk3;
+    Chunk mChunk4;
+    Chunk mChunk5;
 };
 
 #endif // __TERRAIN_TERRAINMANAGER_HPP__
