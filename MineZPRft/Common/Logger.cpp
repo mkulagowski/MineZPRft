@@ -15,8 +15,13 @@ Logger::Logger()
     : mCurrentWorkingDir("unknown")
 {
     mTimer.Start();
+
+    // Here Log function must be used directly.
+    // Otherwise, macro LOG_GENERIC will generate a lock.
+
+    // Information about MineZPRft build
     std::string infoStr = "MineZPRft built <" + std::string(__DATE__)
-        + "> <" + __TIME__ + ">. Logger launched <" + GetDateTime() + ">\n";
+        + " " + __TIME__ + ">. Logger launched <" + GetDateTime() + ">";
     Log(LogType::Info, __FILE__, __func__, __LINE__, infoStr);
 }
 
@@ -43,22 +48,25 @@ void Logger::Log(LogType type, std::string file, const std::string& func,
 
     // Create output message with the following format:
     // [<time elapsed>] [<type>] <file> <func>@<line>: <msg>
-    std::string output = "[" + timeElapsedStream.str() +"] ["
+    std::string prologue = "[" + timeElapsedStream.str() +"] ["
         + LogTypeToString(type) + "] " + file + " " + func + "@"
-        + std::to_string(line) + ": " + message;
+        + std::to_string(line) + ": ";
+    std::stringstream output;
+    output << std::setfill(' ') << std::left << std::setw(80) << prologue
+           << message << std::endl;
 
     // Append to the log file
     std::ofstream logFile;
     logFile.open("MineZPRft.log", std::ios::out | std::ios::app);
     if (logFile.is_open())
-        logFile << output;
+        logFile << output.str();
     logFile.close();
 
     // Print message to the console
-    PrintMessage(type, output);
+    PrintMessage(type, output.str());
 }
 
-// Get current date/time, format is YYYY-MM-DD HH:mm:ss
+// Get current date/time, format is Mmm DD YYYY HH:mm:ss (compliant to __DATE__ and __TIME__)
 const std::string Logger::GetDateTime() const
 {
     time_t     now = time(0);
@@ -72,7 +80,7 @@ const std::string Logger::GetDateTime() const
     tstruct = *localtime(&now);
 #endif // defined(WIN32)
 
-    strftime(buf, sizeof(buf), "%Y-%m-%d %X", &tstruct);
+    strftime(buf, sizeof(buf), "%b %d %Y %X", &tstruct);
 
     return buf;
 }
@@ -93,8 +101,8 @@ const std::string Logger::LogTypeToString(LogType type) const
             return "WARN ";
             break;
 
-        case LogType::Other:
-            return "OTHER";
+        case LogType::Debug:
+            return "DEBUG";
             break;
 
         default:

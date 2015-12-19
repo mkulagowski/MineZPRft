@@ -34,7 +34,7 @@ std::string GetExecutableDir()
     char* execPath = realpath(linkPath.data(), nullptr);
 
     if (!execPath)
-        LOG_E("Failed to resolve executable's path : " << GetLastErrorString() << std::endl);
+        LOG_E("Failed to resolve executable's path : " << GetLastErrorString());
     else
     {
         execPathStr = execPath;
@@ -49,12 +49,12 @@ void ChangeDirectory(const std::string& dir)
     if (::chdir(dir.c_str()) != 0)
     {
         LOG_E("Failed to change current directory to '" << dir
-                  << "': " << GetLastErrorString() << std::endl);
+                  << "': " << GetLastErrorString());
         // TODO exception
         return;
     }
 
-    LOG_I("Current directory changed to: " << dir << std::endl);
+    LOG_I("Current directory changed to: " << dir);
 }
 
 std::string GetCurrentWorkingDir()
@@ -62,7 +62,7 @@ std::string GetCurrentWorkingDir()
     char* currPath = getcwd(nullptr, 0);
     if (!currPath)
     {
-        LOG_W("Error while getting current working directory." << std::endl);
+        LOG_W("Error while getting current working directory.");
         return "";
     }
 

@@ -15,6 +15,12 @@ IF(NOT DEFINED CMAKE_BUILD_TYPE OR CMAKE_BUILD_TYPE STREQUAL "")
     SET(CMAKE_BUILD_TYPE Release)
 ENDIF(NOT DEFINED CMAKE_BUILD_TYPE OR CMAKE_BUILD_TYPE STREQUAL "")
 
+# If we build in Debug, add a macro which will inform the entire project about it
+# Might be needed for example in Logger or some Debug-only macros
+IF(CMAKE_BUILD_TYPE STREQUAL Debug)
+    ADD_DEFINITIONS(-D_DEBUG)
+ENDIF(CMAKE_BUILD_TYPE STREQUAL Debug)
+
 # Pre-define 64-bit build platform
 IF(NOT DEFINED BUILD_PLATFORM)
     EXECUTE_PROCESS(COMMAND uname -m

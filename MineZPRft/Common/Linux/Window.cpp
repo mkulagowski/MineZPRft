@@ -152,7 +152,7 @@ bool WindowManager::Open()
             glXGetFBConfigAttrib(mDisplay, fbc[i], GLX_SAMPLES, &samples);
             LOG_I("  #" << i << ": visualID 0x" << std::setfill('0')
                 << std::setw(2) << vi->visualid << ", SAMPLE_BUFFERS = "
-                << sampleBuffers << ", SAMPLES = " << samples << std::endl);
+                << sampleBuffers << ", SAMPLES = " << samples);
 
             if (samples < maxSamples)
             {
@@ -163,7 +163,7 @@ bool WindowManager::Open()
         XFree(vi);
     }
 
-    LOG_I("Choosing FB config #" << bestFBID << std::endl);
+    LOG_I("Choosing FB config #" << bestFBID);
     GLXFBConfig bestFB = fbc[bestFBID];
     XFree(fbc);
 
@@ -208,15 +208,13 @@ bool WindowManager::Open()
         mContext = glXCreateContextAttribsARB(mDisplay, bestFB, NULL, GL_TRUE, attribs);
         if (!mContext)
         {
-            LOG_W("GL 3.3 core profile not acquired. Falling back to old profile."
-                      << std::endl);
-            LOG_W("Keep in mind, the renderer MIGHT NOT WORK due to too old OGL version!"
-                      << std::endl);
+            LOG_W("GL 3.3 core profile not acquired. Falling back to old profile.");
+            LOG_W("Keep in mind, the renderer MIGHT NOT WORK due to too old OGL version!");
             // failed, fallback to classic method
             mContext = glXCreateNewContext(mDisplay, bestFB, GLX_RGBA_TYPE, NULL, GL_TRUE);
             if (!mContext)
             {
-                LOG_E("Cannot create OpenGL Context." << std::endl);
+                LOG_E("Cannot create OpenGL Context.");
                 // TODO exception
                 return false;
             }
@@ -224,14 +222,12 @@ bool WindowManager::Open()
     }
     else
     {
-        LOG_W("glXCreateContextAttribsARB not available. Creating OGL context the old way."
-                  << std::endl);
-        LOG_W("Keep in mind, the renderer MIGHT NOT WORK due to too old OGL version!"
-                  << std::endl);
+        LOG_W("glXCreateContextAttribsARB not available. Creating OGL context the old way.");
+        LOG_W("Keep in mind, the renderer MIGHT NOT WORK due to too old OGL version!");
         mContext = glXCreateNewContext(mDisplay, bestFB, GLX_RGBA_TYPE, NULL, GL_TRUE);
         if (!mContext)
         {
-            LOG_E("Cannot create OpenGL Context." << std::endl);
+            LOG_E("Cannot create OpenGL Context.");
             // TODO exception
             return false;
         }
@@ -241,9 +237,9 @@ bool WindowManager::Open()
 
     // for information purposes
     if (!glXIsDirect(mDisplay, mContext))
-        LOG_I("Indirect GLX rendering context obtained" << std::endl);
+        LOG_I("Indirect GLX rendering context obtained");
     else
-        LOG_I("Direct GLX rendering context obtained" << std::endl);
+        LOG_I("Direct GLX rendering context obtained");
 
     mClosed = false;
     return true;
@@ -483,7 +479,7 @@ int WindowManager::ErrorHandler(::Display *dpy, XErrorEvent *error)
 {
     char errorCode[1024];
     XGetErrorText(dpy, error->error_code, errorCode, 1024);
-    LOG_E("_X Error of failed request: " << errorCode << std::endl);
+    LOG_E("_X Error of failed request: " << errorCode);
     WindowManager::mWindowError = true;
     return 0;
 }

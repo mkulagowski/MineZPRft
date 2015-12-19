@@ -52,7 +52,7 @@ std::string GetExecutableDir()
     if (len >= maxPathWide)
     {
         LOG_E("Failed to resolve executable's path : %s"
-                  << GetLastErrorString().c_str() << std::endl);
+                  << GetLastErrorString().c_str());
         // TODO exception
         return "";
     }
@@ -65,12 +65,12 @@ void ChangeDirectory(const std::string& dir)
     if (::SetCurrentDirectory(dir.c_str()) == 0)
     {
         LOG_E("Failed to change directory to '" << dir.c_str()
-                  << "': " << GetLastErrorString().c_str() << std::endl);
+                  << "': " << GetLastErrorString().c_str());
         // TODO exception
         return;
     }
 
-    LOG_I("Current directory changed to: " << dir.c_str() << std::endl);
+    LOG_I("CWD changed to: " << dir.c_str());
 }
 
 std::string GetCurrentWorkingDir()
@@ -79,8 +79,7 @@ std::string GetCurrentWorkingDir()
     _getcwd(currPath, MAX_PATH);
     if (!currPath)
     {
-        LOG_W("Current working directory longer than MAX_PATH."
-                      << std::endl);
+        LOG_W("Current working directory longer than MAX_PATH.");
         return "";
     }
 

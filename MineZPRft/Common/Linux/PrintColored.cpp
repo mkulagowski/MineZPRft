@@ -27,7 +27,7 @@ uint8_t Logger::LogTypeToColor(LogType type) const
             return 0x03;
             break;
 
-        case LogType::Other:
+        case LogType::Debug:
             // Cyan
             return 0x06;
             break;

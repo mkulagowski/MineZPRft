@@ -44,7 +44,7 @@ void Renderer::Init(const RendererDesc& desc)
 {
     const GLubyte* glv = glGetString(GL_VERSION);
     std::string glvStr(reinterpret_cast<const char*>(glv));
-    LOG_I("Loading OpenGL " << glvStr << " Renderer" << std::endl);
+    LOG_I("Loading OpenGL " << glvStr << " Renderer");
 
     // initialize OpenGL extensions
     if (!ExtensionsInit())

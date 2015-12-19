@@ -23,16 +23,16 @@ do                                                                    \
 
 /**
  * Macros to make logging easier
- * @param msg Streams object. E.x. "this " << 2 << std::endl;
+ * @param msg Streams object. E.x. "this " << 2;
  */
 #define LOG_I(msg) LOG_GENERIC(LogType::Info, msg)
 #define LOG_W(msg) LOG_GENERIC(LogType::Warning, msg)
 #define LOG_E(msg) LOG_GENERIC(LogType::Error, msg)
 
-#if defined(NDEBUG)
-#define LOG_D(msg) do{} while(0) // For non debug builds turn it off
+#if defined(_DEBUG)
+#define LOG_D(msg) LOG_GENERIC(LogType::Debug, msg)
 #else
-#define LOG_D(msg) LOG_GENERIC(LogType::Other, msg)
+#define LOG_D(msg) do { } while(0) // For non debug builds turn it off
 #endif // defined(NDEBUG)
 
 /**
@@ -43,7 +43,7 @@ enum class LogType
     Info,
     Error,
     Warning,
-    Other,
+    Debug,
 };
 
 /**

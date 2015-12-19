@@ -7,7 +7,7 @@
 #ifndef __RENDERER_COMMON_HPP__
 #define __RENDERER_COMMON_HPP__
 
-#include <iostream>
+#include "Common/Logger.hpp"
 #include <string>
 
 #ifdef WIN32
@@ -34,9 +34,9 @@ do                                                                              
     while ((err = glGetError()) != GL_NO_ERROR)                                 \
     {                                                                           \
         const char* str = reinterpret_cast<const char*>(gluErrorString(err));   \
-        std::cerr << "OpenGL error " << err << ": " << str << std::endl;        \
+        LOG_E("OpenGL error " << err << ": " << str);                           \
     }                                                                           \
-    std::cerr << "==== Error queue empty ====" << std::endl;                    \
+    LOG_I("==== OpenGL Error queue empty ====");                                \
 } while(0)
 #endif // GL_GET_ERROR
 
