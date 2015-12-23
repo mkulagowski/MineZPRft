@@ -17,7 +17,7 @@
  * Will be useful when measuring performance between specific chunk sizes.
  */
 #define CHUNK_X 32
-#define CHUNK_Y 256
+#define CHUNK_Y 128
 #define CHUNK_Z 32
 
 
@@ -26,6 +26,11 @@ class Chunk
 public:
     Chunk();
     ~Chunk();
+
+    /**
+     * Triggers initialization of resources used by Voxel.
+     */
+    void Init();
 
     /**
      * Set voxel in current chunk to a specific type.
@@ -90,13 +95,20 @@ public:
     /**
      * Fills the Chunk with Perlin-generated voxels.
      *
-     * @param chunkX Number of X-th chunk in the generated world.
-     * @param chunkZ Number of Z-th chunk in the generated world.
+     * @param chunkX        Number of X-th chunk in the generated world.
+     * @param chunkZ        Number of Z-th chunk in the generated world.
+     * @param currentChunkX Number of X-th chunk on which player currently is.
+     * @param currentChunkZ Number of Z-th chunk on which player currently is.
      *
      * The chunks in the world create a two-dimensional grid. All are connected and it is assumed,
      * that the map generated in between them is seamless.
      */
-    void Generate(int chunkX, int chunkZ) noexcept;
+    void Generate(int chunkX, int chunkZ, int currentChunkX, int currentChunkZ) noexcept;
+
+    /**
+     * Acquire pointer to a Mesh object managed by Chunk.
+     */
+    const Mesh* GetMeshPtr();
 
 private:
     /**
