@@ -18,6 +18,7 @@ using namespace OGLExt;
 Renderer::Renderer()
     : mCamera()
     , mMainShader()
+    , mMainShaderWorldMatrixLoc(GL_NONE)
     , mMainShaderViewMatrixLoc(GL_NONE)
     , mMainShaderPerspectiveMatrixLoc(GL_NONE)
     , mDummyVAO(GL_NONE)
@@ -87,6 +88,7 @@ void Renderer::Init(const RendererDesc& desc)
 
     // Initialize uniforms constant throughout program lifetime
     mMainShader.MakeCurrent();
+    mMainShaderWorldMatrixLoc = mMainShader.GetUniform("worldMat");
     mMainShaderViewMatrixLoc = mMainShader.GetUniform("viewMat");
     mMainShaderPerspectiveMatrixLoc = mMainShader.GetUniform("perspMat");
     mMainShaderPlayerPosLoc = mMainShader.GetUniform("playerPos");
@@ -120,6 +122,7 @@ void Renderer::Draw() noexcept
     for (const auto& mesh : mMeshArray)
     {
         mesh->Bind();
+        glUniformMatrix4fv(mMainShaderWorldMatrixLoc, 1, false, mesh->GetWorldMatrixRaw());
 
         glDrawArrays(GL_POINTS, 0, mesh->GetVertCount());
     }

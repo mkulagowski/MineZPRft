@@ -62,7 +62,7 @@ Matrix::Matrix(Matrix&& other)
     std::swap(f, other.f);
 }
 
-const float* Matrix::Data()
+const float* Matrix::Data() const
 {
     return f;
 }
@@ -341,4 +341,15 @@ Matrix CreateRotationMatrixZ(const float angle)
                      s,    c, 0.0f, 0.0f,
                   0.0f, 0.0f, 1.0f, 0.0f,
                   0.0f, 0.0f, 0.0f, 1.0f);
+}
+
+Matrix CreateTranslationMatrix(const Vector& translation)
+{
+    Matrix result(MATRIX_IDENTITY);
+
+    result.f[12] = translation[0];
+    result.f[13] = translation[1];
+    result.f[14] = translation[2];
+
+    return result;
 }

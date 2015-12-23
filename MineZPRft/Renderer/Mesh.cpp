@@ -12,6 +12,7 @@
 using namespace OGLExt;
 
 Mesh::Mesh()
+    : mWorldMatrix(MATRIX_IDENTITY)
 {
 }
 
@@ -39,7 +40,16 @@ void Mesh::Bind() const noexcept
     //               Vertex Position attribute).
     glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 28,
                           reinterpret_cast<const void*>(3 * sizeof(float)));
+}
 
+void Mesh::SetWorldMatrix(const Matrix& matrix) noexcept
+{
+    mWorldMatrix = matrix;
+}
+
+const float* Mesh::GetWorldMatrixRaw() const noexcept
+{
+    return mWorldMatrix.Data();
 }
 
 GLsizei Mesh::GetVertCount() const noexcept

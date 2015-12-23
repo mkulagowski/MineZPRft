@@ -20,7 +20,7 @@ public:
      * Access matrix values
      * @return pointer to 4x4 float matrix.
      */
-    const float* Data();
+    const float* Data() const;
 
     Matrix();
     Matrix(float a);
@@ -77,6 +77,7 @@ public:
 
     // Friendship
     friend Vector operator*(const Matrix& a, const Vector& b);
+    friend Matrix CreateTranslationMatrix(const Vector& translation);
 
 private:
     float f[4 * 4];
@@ -142,6 +143,23 @@ Matrix CreateRotationMatrixY(const float angle);
  * @return Rotation matrix along Z axis
  */
 Matrix CreateRotationMatrixZ(const float angle);
+
+/**
+ * Create a Translation Matrix, which multiplied by a Vector will shift it by @p translation
+ * Vector from origin.
+ *
+ * @param translation Translation Vector. 4th dimension (w) is ignored.
+ *
+ * @return Translation Matrix
+ */
+Matrix CreateTranslationMatrix(const Vector& translation);
+
+
+// Useful constants
+const Matrix MATRIX_IDENTITY(1.0f, 0.0f, 0.0f, 0.0f,
+                             0.0f, 1.0f, 0.0f, 0.0f,
+                             0.0f, 0.0f, 1.0f, 0.0f,
+                             0.0f, 0.0f, 0.0f, 1.0f); ///< Identity matrix constant.
 
 
 #endif // __MATH_MATRIX_HPP__

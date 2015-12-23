@@ -9,6 +9,7 @@
 
 #include "Defines.hpp"
 
+#include "Math/Matrix.hpp"
 #include <cstdlib>
 
 /**
@@ -55,6 +56,20 @@ public:
     void Bind() const noexcept;
 
     /**
+     * Replaces current World Matrix with a new one @p matrix.
+     *
+     * @param matrix Matrix to replace current World Matrix.
+     *
+     * @remarks For performance the function will not throw.
+     */
+    void SetWorldMatrix(const Matrix& matrix) noexcept;
+
+    /**
+     * Acquire pointer to raw World Matrix data.
+     */
+    const float* GetWorldMatrixRaw() const noexcept;
+
+    /**
      * Get vertex count for current mesh.
      */
     GLsizei GetVertCount() const noexcept;
@@ -73,6 +88,7 @@ public:
 private:
     GLuint mVBO;
     GLsizei mVertCount;
+    Matrix mWorldMatrix;
 };
 
 #endif // __RENDERER_MESH_HPP__

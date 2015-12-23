@@ -93,6 +93,7 @@ private:
 
     Camera mCamera;
     Shader mMainShader; // TODO name is subject to change
+    GLint mMainShaderWorldMatrixLoc;
     GLint mMainShaderViewMatrixLoc;
     GLint mMainShaderPerspectiveMatrixLoc;
     GLint mMainShaderPlayerPosLoc;

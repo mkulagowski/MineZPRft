@@ -149,13 +149,9 @@ void Chunk::Generate(int chunkX, int chunkZ) noexcept
                         continue;
                     }
 
-                    // Because (for performance issues) we fill the chunk only to 1/4 of its size,
-                    // (plus the heightmap) we shift the voxels to CHUNK_Y / 4 + HEIGHTMAP_HEIGHT
-                    // NOTE Like mentioned in Stage 3, for seamlessness purposes chunkZ refers to X
-                    //      coordinate and chunk X refers to Z coordinate shift.
-                    verts.push_back(static_cast<float>(x + (chunkZ * CHUNK_Z)));
-                    verts.push_back(static_cast<float>(y - (CHUNK_Y / 4 + HEIGHTMAP_HEIGHT)));
-                    verts.push_back(static_cast<float>(z + (chunkX * CHUNK_X)));
+                    verts.push_back(static_cast<float>(x));
+                    verts.push_back(static_cast<float>(y));
+                    verts.push_back(static_cast<float>(z));
 
                     const Voxel& voxData = voxDataIt->second;
                     verts.push_back(voxData.colorRed);
@@ -171,6 +167,15 @@ void Chunk::Generate(int chunkX, int chunkZ) noexcept
     md.vertCount = verts.size() / FLOAT_COUNT_PER_VERTEX;
     mMesh.Init(md);
 
+    // Do two shifts at once:
+    //   * Shift the Voxel to the center of the world
+    //   * According to chunkX and chunkZ shift it to the correct position.
+    mMesh.SetWorldMatrix(CreateTranslationMatrix(
+        Vector(static_cast<float>(-CHUNK_X / 2 + chunkZ * CHUNK_Z),
+               static_cast<float>(-CHUNK_Y / 4 - HEIGHTMAP_HEIGHT),
+               static_cast<float>(-CHUNK_X / 2 + chunkX * CHUNK_X),
+               0.0f)
+    ));
     Renderer::GetInstance().AddMesh(&mMesh);
 
     // Inform that the terrain has finally been generated.
