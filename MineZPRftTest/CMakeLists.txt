@@ -10,9 +10,11 @@ FILE(GLOB TEST_HEADERS       *.hpp)
 # Units
 # TODO uncomment and fill when units are available
 FILE(GLOB TEST_UNIT_SOURCES ${MZPR_ROOT_DIRECTORY}/MineZPRft/Math/Vector.cpp
-                            ${MZPR_ROOT_DIRECTORY}/MineZPRft/Math/Matrix.cpp)
+                            ${MZPR_ROOT_DIRECTORY}/MineZPRft/Math/Matrix.cpp
+                            ${MZPR_ROOT_DIRECTORY}/MineZPRft/Common/FPSCounter.cpp)
 FILE(GLOB TEST_UNIT_HEADERS ${MZPR_ROOT_DIRECTORY}/MineZPRft/Math/Vector.hpp
-                            ${MZPR_ROOT_DIRECTORY}/MineZPRft/Math/Matrix.hpp)
+                            ${MZPR_ROOT_DIRECTORY}/MineZPRft/Math/Matrix.hpp
+                            ${MZPR_ROOT_DIRECTORY}/MineZPRft/Common/FPSCounter.hpp)
 
 # Requirements
 FILE(GLOB TEST_REQ_SOURCES   ${MZPR_ROOT_DIRECTORY}/MineZPRft/Common/Linux/FileSystem.cpp
