@@ -25,14 +25,17 @@ const std::string CHUNK_DIR = "ChunkBank";
 const std::string CHUNK_FILEEXT = ".riQrll";
 const int HEIGHTMAP_HEIGHT = 16;
 const double AIR_THRESHOLD = 0.3;
-const int FLOAT_COUNT_PER_VERTEX = 7;
+const int FLOAT_COUNT_PER_VERTEX_NAIVE = 7;
+const int FLOAT_COUNT_PER_VERTEX_GREEDY = 10;
 const float ALPHA_COMPONENT = 1.0f; // Alpha color component should stay at 1,0 (full opacity).
+
 
 } // namespace
 
 
 Chunk::Chunk()
     : mState(ChunkState::NotGenerated)
+    , mFloatCountPerVertex(1.0f)
 {
     for (VoxelType& voxel : mVoxels)
         voxel = VoxelType::Air;
@@ -44,10 +47,13 @@ Chunk::Chunk(const Chunk& other)
         mVoxels[i] = other.mVoxels[i];
 
     mVerts = other.mVerts;
+    mGreedyGenerated = other.mGreedyGenerated;
+    mTerrainGenerator = other.mTerrainGenerator;
+    mFloatCountPerVertex = other.mFloatCountPerVertex;
     MeshDesc md;
     md.dataPtr = mVerts.data();
     md.dataSize = mVerts.size() * sizeof(float);
-    md.vertCount = mVerts.size() / FLOAT_COUNT_PER_VERTEX;
+    md.vertCount = mVerts.size() / mFloatCountPerVertex;
     mMesh.Init(md);
     mState = other.mState.load();
     if (mState == ChunkState::Updated)
@@ -92,16 +98,28 @@ VoxelType Chunk::GetVoxel(size_t x, size_t y, size_t z) noexcept
 
 void Chunk::Shift(int chunkX, int chunkZ)
 {
-    Vector shift(static_cast<float>((chunkX - 0.5) * CHUNK_X),
-                 static_cast<float>((-(CHUNK_Y / 4) - HEIGHTMAP_HEIGHT)),
-                 static_cast<float>((chunkZ - 0.5) * CHUNK_Z),
+    Vector shift((static_cast<float>(chunkX) - 0.5f) * CHUNK_X,
+                 static_cast<float>(-(CHUNK_Y / 4) - HEIGHTMAP_HEIGHT),
+                 (static_cast<float>(chunkZ) - 0.5f) * CHUNK_Z,
                  0.0f);
     // TODO rotation should be unnecessary! Probably a bug in Perlin
     mMesh.SetWorldMatrix(CreateTranslationMatrix(shift) * CreateRotationMatrixY(MATH_PIF));
 }
 
-void Chunk::Generate(int chunkX, int chunkZ, int currentChunkX, int currentChunkZ) noexcept
+void Chunk::Generate(int chunkX, int chunkZ, int currentChunkX, int currentChunkZ,
+                     bool useGreedyMeshing) noexcept
 {
+    if (useGreedyMeshing)
+    {
+        mTerrainGenerator = std::bind(&Chunk::GenerateVBOGreedy, this);
+        mFloatCountPerVertex = FLOAT_COUNT_PER_VERTEX_GREEDY;
+    }
+    else
+    {
+        mTerrainGenerator = std::bind(&Chunk::GenerateVBONaive, this);
+        mFloatCountPerVertex = FLOAT_COUNT_PER_VERTEX_NAIVE;
+    }
+
     // Set coords for chunk
     mCoordX = chunkX + currentChunkX;
     mCoordZ = chunkZ + currentChunkZ;
@@ -109,7 +127,8 @@ void Chunk::Generate(int chunkX, int chunkZ, int currentChunkX, int currentChunk
     // If Chunk was saved to disk, load it from file.
     if (LoadFromDisk())
     {
-        GenerateVBONaive();
+        mTerrainGenerator();
+
         LOG_D("Chunk [" << mCoordX << ", "
               << mCoordZ << "] was successfully read from disk.");
         return;
@@ -196,7 +215,8 @@ void Chunk::Generate(int chunkX, int chunkZ, int currentChunkX, int currentChunk
 
     LOG_D("  Chunk [" << mCoordX << ", " << mCoordZ << "] Stage 4 done");
 
-    GenerateVBONaive();
+    mTerrainGenerator();
+    LOG_D("  Chunk [" << mCoordX << ", " << mCoordZ << "] generated.");
 
     return;
 }
@@ -211,7 +231,7 @@ void Chunk::CommitMeshUpdate()
     MeshUpdateDesc md;
     md.dataPtr = mVerts.data();
     md.dataSize = mVerts.size() * sizeof(float);
-    md.vertCount = mVerts.size() / FLOAT_COUNT_PER_VERTEX;
+    md.vertCount = mVerts.size() / mFloatCountPerVertex;
     mMesh.Update(md);
     mState = ChunkState::Updated;
     mMesh.SetLocked(false);
@@ -309,16 +329,339 @@ void Chunk::GenerateVBONaive()
     // TODO Consider if this won't race with rest of the code
     // If so check Chunk::Generate() and TerrainManager::Update()
     mState = ChunkState::Generated;
+    mGreedyGenerated = false;
+}
+
+void Chunk::ProcessPlaneX(const VoxelType* voxels, const Vector& shift,
+                         std::vector<quad>& resultQuads)
+{
+    bool quadProcessing;
+    quad q;
+    for (int x = 0; x < CHUNK_X; ++x)
+        for (int y = 0; y < CHUNK_Y / 4 + HEIGHTMAP_HEIGHT; ++y)
+        {
+            // reset flags
+            quadProcessing = false;
+
+            for (int z = 0; z < CHUNK_Z; ++z)
+            {
+                size_t index;
+                CalculateIndex(x, y, z, index);
+                VoxelType vox = voxels[index];
+                if (vox != VoxelType::Air && vox != VoxelType::Unknown)
+                {
+                    // we found a voxel in this line that is not air!
+                    if (!quadProcessing)
+                    {
+                        // begin the processing, as this is the first one in this line
+                        q = {Vector(static_cast<float>(x),
+                                    static_cast<float>(y),
+                                    static_cast<float>(z), 0.0f) + shift,
+                             1, 1, vox};
+                        quadProcessing = true;
+                    }
+                    else
+                    {
+                        if (vox == q.v)
+                            // extend the quad that is already started (unless the voxel type matches)
+                            q.w++;
+                        else
+                        {
+                            // otherwise, close the quad and start a new one
+                            resultQuads.push_back(q);
+                            q = {Vector(static_cast<float>(x),
+                                        static_cast<float>(y),
+                                        static_cast<float>(z), 0.0f) + shift,
+                                 1, 1, vox};
+                        }
+                    }
+                }
+                else
+                {
+                    // we hit air during process, close the quad if it is being processed
+                    if (quadProcessing)
+                    {
+                        resultQuads.push_back(q);
+                        quadProcessing = false;
+                    }
+                }
+            }
+
+            if (quadProcessing)
+                // line finished during quad processing
+                // we can close the quad and push it back
+                resultQuads.push_back(q);
+        }
+}
+
+void Chunk::ProcessPlaneY(const VoxelType* voxels, const Vector& shift,
+                         std::vector<quad>& resultQuads)
+{
+    bool quadProcessing;
+    quad q;
+    for (int y = 0; y < CHUNK_Y / 4 + HEIGHTMAP_HEIGHT; ++y)
+        for (int z = 0; z < CHUNK_Z; ++z)
+        {
+            // reset flags
+            quadProcessing = false;
+
+            for (int x = 0; x < CHUNK_X; ++x)
+            {
+                size_t index;
+                CalculateIndex(x, y, z, index);
+                VoxelType vox = voxels[index];
+                if (vox != VoxelType::Air && vox != VoxelType::Unknown)
+                {
+                    // we found a voxel in this line that is not air!
+                    if (!quadProcessing)
+                    {
+                        // begin the processing, as this is the first one in this line
+                        q = {Vector(static_cast<float>(x),
+                                    static_cast<float>(y),
+                                    static_cast<float>(z), 0.0f) + shift,
+                             1, 1, vox};
+                        quadProcessing = true;
+                    }
+                    else
+                    {
+                        if (vox == q.v)
+                            // extend the quad that is already started (unless the voxel type matches)
+                            q.w++;
+                        else
+                        {
+                            // otherwise, close the quad and start a new one
+                            resultQuads.push_back(q);
+                            q = {Vector(static_cast<float>(x),
+                                        static_cast<float>(y),
+                                        static_cast<float>(z), 0.0f) + shift,
+                                 1, 1, vox};
+                        }
+                    }
+                }
+                else
+                {
+                    // we hit air during process, close the quad if it is being processed
+                    if (quadProcessing)
+                    {
+                        resultQuads.push_back(q);
+                        quadProcessing = false;
+                    }
+                }
+            }
+
+            if (quadProcessing)
+                // line finished during quad processing
+                // we can close the quad and push it back
+                resultQuads.push_back(q);
+        }
+}
+
+void Chunk::ProcessPlaneZ(const VoxelType* voxels, const Vector& shift,
+                         std::vector<quad>& resultQuads)
+{
+    bool quadProcessing;
+    quad q;
+    for (int z = 0; z < CHUNK_Z; ++z)
+        for (int y = 0; y < CHUNK_Y / 4 + HEIGHTMAP_HEIGHT; ++y)
+        {
+            // reset flags
+            quadProcessing = false;
+
+            for (int x = 0; x < CHUNK_X; ++x)
+            {
+                size_t index;
+                CalculateIndex(x, y, z, index);
+                VoxelType vox = voxels[index];
+                if (vox != VoxelType::Air && vox != VoxelType::Unknown)
+                {
+                    // we found a voxel in this line that is not air!
+                    if (!quadProcessing)
+                    {
+                        // begin the processing, as this is the first one in this line
+                        q = {Vector(static_cast<float>(x),
+                                    static_cast<float>(y),
+                                    static_cast<float>(z), 0.0f) + shift,
+                             1, 1, vox};
+                        quadProcessing = true;
+                    }
+                    else
+                    {
+                        if (vox == q.v)
+                            // extend the quad that is already started (unless the voxel type matches)
+                            q.w++;
+                        else
+                        {
+                            // otherwise, close the quad and start a new one
+                            resultQuads.push_back(q);
+                            q = {Vector(static_cast<float>(x),
+                                        static_cast<float>(y),
+                                        static_cast<float>(z), 0.0f) + shift,
+                                 1, 1, vox};
+                        }
+                    }
+                }
+                else
+                {
+                    // we hit air during process, close the quad if it is being processed
+                    if (quadProcessing)
+                    {
+                        resultQuads.push_back(q);
+                        quadProcessing = false;
+                    }
+                }
+            }
+
+            if (quadProcessing)
+                // line finished during quad processing
+                // we can close the quad and push it back
+                resultQuads.push_back(q);
+        }
+
+    // TODO a further optimization might be joining same types of quads (matching start, w and v)
+    //      into one by increasing their height. Consider if this won't slow our GenerateVBOGreedy
+    //      too much.
+}
+
+void Chunk::PushVertsFromQuads(const std::vector<quad>& quads, const Vector& normal)
+{
+    Vector v0, v1, v2, v3;
+
+    for (const auto& q : quads)
+    {
+        v0 = q.start;
+        // Shifting to match how Naive mesher expanded the verts to voxels.
+        if (normal[0] != 0.0f)
+        {
+            // Processing quads from X pass
+            v1 = q.start + Vector(0.0f, 0.0f, static_cast<float>(q.w), 0.0f);
+            v2 = q.start + Vector(0.0f, static_cast<float>(q.h), 0.0f, 0.0f);
+            v3 = q.start + Vector(0.0f, static_cast<float>(q.h), static_cast<float>(q.w), 0.0f);
+        }
+        else if (normal[1] != 0.0f)
+        {
+            // Processing quads from Y pass
+            v1 = q.start + Vector(static_cast<float>(q.w), 0.0f, 0.0f, 0.0f);
+            v2 = q.start + Vector(0.0f, 0.0f, static_cast<float>(q.h), 0.0f);
+            v3 = q.start + Vector(static_cast<float>(q.w), 0.0f, static_cast<float>(q.h), 0.0f);
+        }
+        else if (normal[2] != 0.0f)
+        {
+            // Processing quads from Z pass
+            v1 = q.start + Vector(static_cast<float>(q.w), 0.0f, 0.0f, 0.0f);
+            v2 = q.start + Vector(0.0f, static_cast<float>(q.h), 0.0f, 0.0f);
+            v3 = q.start + Vector(static_cast<float>(q.w), static_cast<float>(q.h), 0.0f, 0.0f);
+        }
+
+        auto voxDataIt = VoxelDB.find(q.v);
+        const Voxel& voxData = voxDataIt->second;
+
+        auto pushVerts = [this](const Vector& v, const Vector& n, const Voxel& vox) {
+            mVerts.push_back(v[0]); mVerts.push_back(v[1]); mVerts.push_back(v[2]);
+            mVerts.push_back(n[0]); mVerts.push_back(n[1]); mVerts.push_back(n[2]);
+            mVerts.push_back(vox.colorRed); mVerts.push_back(vox.colorGreen);
+            mVerts.push_back(vox.colorBlue); mVerts.push_back(ALPHA_COMPONENT);
+        };
+
+        // Vert order: pos.xyz, norm.xyz, col.rgba
+        pushVerts(v0, normal, voxData); // first vert
+
+        // Decide which order to take according to normals (they will help us
+        // select which side of the cube are we processing to set the vert order aka. tri strip)
+        // For some weird reason, the order was correct for all passes except for X pass.
+        // Instead of figuring out what is wrong, it is much easier to just fix a condition.
+        if ((normal[0] == 1.0f) || (normal[1] == -1.0f) || (normal[2] == -1.0f))
+        {
+            pushVerts(v2, normal, voxData); // third vert
+            pushVerts(v1, normal, voxData); // second vert
+            pushVerts(v1, normal, voxData); // second vert
+            pushVerts(v2, normal, voxData); // third vert
+        }
+        else
+        {
+            pushVerts(v1, normal, voxData); // second vert
+            pushVerts(v2, normal, voxData); // third vert
+            pushVerts(v2, normal, voxData); // third vert
+            pushVerts(v1, normal, voxData); // second vert
+        }
+
+        pushVerts(v3, normal, voxData); // fourth vert
+    }
 }
 
 void Chunk::GenerateVBOGreedy()
 {
+    VoxelType voxelsCulled[CHUNK_X * CHUNK_Y * CHUNK_Z];
+    for (auto& voxel : voxelsCulled)
+        voxel = VoxelType::Air;
+
+    mVerts.clear();
+    // First stage of greedy meshing - cull invisible voxels like in Naive alg
     for (int z = 0; z < CHUNK_Z; ++z)
         for (int y = 0; y < CHUNK_Y / 4 + HEIGHTMAP_HEIGHT; ++y)
             for (int x = 0; x < CHUNK_X; ++x)
             {
+                VoxelType vox = GetVoxel(x, y, z);
+                if (vox != VoxelType::Air && vox != VoxelType::Unknown)
+                {
+                    // First of all, test only if we are not a bounding voxel chunk.
+                    // Otherwise we must add the voxel anyway.
+                    if ((x > 0) && (x < CHUNK_X - 1) &&
+                        (y > 0) && (y < CHUNK_Y - 1) &&
+                        (z > 0) && (z < CHUNK_Z - 1))
+                    {
+                        // Now see if there is VoxelType::Air in our neighbourhood
+                        // If there is none, discard the Voxel.
+                        VoxelType voxPlusX = GetVoxel(x+1, y, z);
+                        VoxelType voxMinusX = GetVoxel(x-1, y, z);
+                        VoxelType voxPlusY = GetVoxel(x, y+1, z);
+                        VoxelType voxMinusY = GetVoxel(x, y-1, z);
+                        VoxelType voxPlusZ = GetVoxel(x, y, z+1);
+                        VoxelType voxMinusZ = GetVoxel(x, y, z-1);
+
+                        if ((voxPlusX != VoxelType::Air) &&
+                            (voxMinusX != VoxelType::Air) &&
+                            (voxPlusY != VoxelType::Air) &&
+                            (voxMinusY != VoxelType::Air) &&
+                            (voxPlusZ != VoxelType::Air) &&
+                            (voxMinusZ != VoxelType::Air))
+                            // We are surrounded by voxels. Ergo, we are not visible.
+                            // Discard current voxel to not render unseen voxels.
+                            continue;
+                    }
+
+                    size_t index;
+                    CalculateIndex(x, y, z, index);
+                    voxelsCulled[index] = vox;
+                }
             }
+
+    // With culled Mesh, we have to do six passes now. two per each axis.
+    std::vector<quad> quadsXPlus;
+    std::vector<quad> quadsXMinus;
+    std::vector<quad> quadsYPlus;
+    std::vector<quad> quadsYMinus;
+    std::vector<quad> quadsZPlus;
+    std::vector<quad> quadsZMinus;
+
+    // All shifts are by +/- 0.5f to match the behavior of Naive generator
+    ProcessPlaneX(voxelsCulled, Vector( 0.5f,-0.5f,-0.5f, 0.0f), quadsXPlus);
+    ProcessPlaneX(voxelsCulled, Vector(-0.5f,-0.5f,-0.5f, 0.0f), quadsXMinus);
+    ProcessPlaneY(voxelsCulled, Vector(-0.5f,-0.5f,-0.5f, 0.0f), quadsYPlus);
+    ProcessPlaneY(voxelsCulled, Vector(-0.5f, 0.5f,-0.5f, 0.0f), quadsYMinus);
+    ProcessPlaneZ(voxelsCulled, Vector(-0.5f,-0.5f, 0.5f, 0.0f), quadsZPlus);
+    ProcessPlaneZ(voxelsCulled, Vector(-0.5f,-0.5f,-0.5f, 0.0f), quadsZMinus);
+
+    // Push the quads and build a Mesh from it
+    PushVertsFromQuads(quadsXPlus,  Vector( 1.0f, 0.0f, 0.0f, 0.0f));
+    PushVertsFromQuads(quadsXMinus, Vector(-1.0f, 0.0f, 0.0f, 0.0f));
+    PushVertsFromQuads(quadsYPlus,  Vector( 0.0f, 1.0f, 0.0f, 0.0f));
+    PushVertsFromQuads(quadsYMinus, Vector( 0.0f,-1.0f, 0.0f, 0.0f));
+    PushVertsFromQuads(quadsZPlus,  Vector( 0.0f, 0.0f, 1.0f, 0.0f));
+    PushVertsFromQuads(quadsZMinus, Vector( 0.0f, 0.0f,-1.0f, 0.0f));
+
     mMesh.SetPrimitiveType(MeshPrimitiveType::Triangles);
+    mState = ChunkState::Generated;
+    mGreedyGenerated = true;
 }
 
 bool Chunk::SaveToDisk()
