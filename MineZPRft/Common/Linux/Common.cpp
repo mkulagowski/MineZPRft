@@ -7,8 +7,15 @@
 #include "../Common.hpp"
 
 #include <string.h>
+#include <algorithm>
 
 std::string GetLastErrorString()
 {
     return strerror(errno);
+}
+
+bool IsNumeric(char const *string)
+{
+    return std::all_of(string, string + strlen(string),
+                       [](unsigned char c) { return ::isdigit(c); });
 }
