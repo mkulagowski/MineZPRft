@@ -17,3 +17,6 @@ cmake_install.cmake
 
 # MineZPRft log files
 *.log
+
+# Chunk files
+ChunkBank
