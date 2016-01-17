@@ -94,6 +94,10 @@ void Chunk::Shift(int chunkX, int chunkZ)
 
 void Chunk::Generate(int chunkX, int chunkZ, int currentChunkX, int currentChunkZ) noexcept
 {
+    // Set coords for chunk
+    mCoordX = chunkX + currentChunkX;
+    mCoordZ = chunkZ + currentChunkZ;
+
     NoiseGenerator& noiseGen = NoiseGenerator::GetInstance();
 
     // Further "generation loops" will assume that bottom two layers of chunk are
@@ -109,7 +113,7 @@ void Chunk::Generate(int chunkX, int chunkZ, int currentChunkX, int currentChunk
             for (int x = 0; x < CHUNK_X; ++x)
                 SetVoxel(x, y, z, VoxelType::Stone);
 
-    LOG_D("  Chunk [" << chunkX << ", " << chunkZ << "] Stage 1 done");
+    LOG_D("  Chunk [" << mCoordX << ", " << mCoordZ << "] Stage 1 done");
 
     // Stage 2.1 - generate a heightmap using Perlin
     double noise;
@@ -120,9 +124,9 @@ void Chunk::Generate(int chunkX, int chunkZ, int currentChunkX, int currentChunk
             // TODO adjust scaling
             // Noise arguments are shifted according to Chunk::Generate() arguments.
             // This way the map will be seamless and the chunks connected.
-            noise = noiseGen.Noise((x + (CHUNK_Z * (chunkZ + currentChunkZ))) / 32.0,
+            noise = noiseGen.Noise((x + (CHUNK_Z * mCoordZ)) / 32.0,
                                    0.0,
-                                   (z + (CHUNK_X * (chunkX + currentChunkX))) / 32.0);
+                                   (z + (CHUNK_X * mCoordX)) / 32.0);
 
             // Noise-returned values span -1..1 range,
             // Add 1 to them to convert it to 0..2 range.
@@ -146,7 +150,7 @@ void Chunk::Generate(int chunkX, int chunkZ, int currentChunkX, int currentChunk
                     SetVoxel(x, y, z, VoxelType::Stone);
             }
 
-    LOG_D("  Chunk [" << chunkX << ", " << chunkZ << "] Stage 2 done");
+    LOG_D("  Chunk [" << mCoordX << ", " << mCoordZ << "] Stage 2 done");
     /*
     // Stage 3 - cut through the terrain with some Perlin-generated caves
     for (int z = 0; z < CHUNK_Z; ++z)
@@ -157,15 +161,15 @@ void Chunk::Generate(int chunkX, int chunkZ, int currentChunkX, int currentChunk
                 // NOTE chunkZ applies to X coordinate and chunkX applies to Z coordinate.
                 //      Otherwise, the chunk would be rotated and the map would lost its
                 //      seamlessness.
-                noise = noiseGen.Noise((x + CHUNK_X * (chunkX + currentChunkX)) * 0.1,
+                noise = noiseGen.Noise((x + CHUNK_X * mCoordX) * 0.1,
                                         y * 0.1,
-                                       (z + CHUNK_Z * (chunkZ + currentChunkZ)) * 0.1);
+                                       (z + CHUNK_Z * mCoordZ) * 0.1);
 
                 if (noise > AIR_THRESHOLD)
                     SetVoxel(x, y, z, VoxelType::Air);
             }
 
-    LOG_D("  Chunk [" << chunkX << ", " << chunkZ << "] Stage 3 done");*/
+    LOG_D("  Chunk [" << mCoordX << ", " << mCoordZ << "] Stage 3 done");*/
 
     // Stage 4 - force-fill first two layers of the ground with bedrock
     for (int z = 0; z < CHUNK_Z; ++z)
@@ -173,10 +177,10 @@ void Chunk::Generate(int chunkX, int chunkZ, int currentChunkX, int currentChunk
             for (int x = 0; x < CHUNK_X; ++x)
                 SetVoxel(x, y, z, VoxelType::Bedrock);
 
-    LOG_D("  Chunk [" << chunkX << ", " << chunkZ << "] Stage 4 done");
+    LOG_D("  Chunk [" << mCoordX << ", " << mCoordZ << "] Stage 4 done");
 
     GenerateVBONaive();
-    LOG_D("  Chunk [" << chunkX << ", " << chunkZ << "] generated.");
+    LOG_D("  Chunk [" << mCoordX << ", " << mCoordZ << "] generated.");
 
     mState = ChunkState::Generated;
 }
